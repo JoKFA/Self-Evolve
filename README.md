@@ -76,17 +76,35 @@ Copy-Item scripts\activator.ps1, scripts\error-detector.ps1 ~\.claude\hooks\
 ```
 </details>
 
+## Multi-Level Architecture
+
+Self-evolve understands that learnings have different scopes. It routes each entry to the right level automatically:
+
+| Scope | Where it goes | Example |
+|-------|--------------|---------|
+| **Project** | Project memory | "This app uses Redis for sessions, not SQLite" |
+| **Workspace** | Codebase CLAUDE.md | "All projects here use pnpm, not npm" |
+| **Global** | Global CLAUDE.md | "When user pushes back, re-read requirements before iterating" |
+
+When promoting a rule to a higher level, the **Quality Gate** checks all levels for duplicates, conflicts, and inherited rules — so you never end up with the same rule repeated across project, workspace, and global files.
+
+If a project-level rule gets promoted to workspace level, the original is automatically cleaned up (`Superseded-By` marker).
+
 ## How Memory Is Stored
 
-Plain markdown files at `~/.claude/projects/<project-hash>/memory/`. No database, no API keys, no external services. You can read, edit, or delete them directly.
+Plain markdown at `~/.claude/projects/<project-hash>/memory/` — one set per project. No database, no API keys, no external services. You can read, edit, or delete them directly.
 
 ```
-memory/
-  MEMORY.md              -- Cross-session facts + Read Triggers
+~/.claude/CLAUDE.md                          -- Global rules (all projects)
+<workspace>/CLAUDE.md                        -- Workspace rules (multi-project)
+<project>/CLAUDE.md                          -- Project-specific rules
+
+~/.claude/projects/<hash>/memory/
+  MEMORY.md                                  -- Cross-session facts + Read Triggers
   learnings/
-    ERRORS.md            -- Failure logs
-    LEARNINGS.md         -- Corrections, patterns, best practices
-    DECISIONS.md         -- Architecture/design choices
+    ERRORS.md                                -- Failure logs
+    LEARNINGS.md                             -- Corrections, patterns, best practices
+    DECISIONS.md                             -- Architecture/design choices
 ```
 
 ## Test Results
